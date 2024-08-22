@@ -1,0 +1,214 @@
+from carduage import Deck
+
+variables = {}
+
+def display_help():
+    help_text = """
+    Available Commands:
+    -------------------
+    move_top_to_bottom n
+        - Move the top `n` cards to the bottom of the deck.
+        - `n` can be a number, an expression like `count-2`, or a variable.
+        - Example: move_top_to_bottom 3
+        - Example: move_top_to_bottom count-2
+        - Example: move_top_to_bottom x
+
+    flip_deck
+        - Flip the entire deck (reverse the order of cards).
+        - Example: flip_deck
+
+    cut_deck n
+        - Cut the deck at position `n` and create a new deck with the top `n` cards.
+        - `n` can be a number, an expression like `count/2`, or a variable.
+        - Example: cut_deck 5
+        - Example: cut_deck count/2
+        - Example: cut_deck x
+
+    peek_top n
+        - View the top `n` cards without modifying the deck.
+        - `n` can be a number, an expression like `count-1`, or a variable.
+        - Example: peek_top 2
+        - Example: peek_top count-1
+        - Example: peek_top x
+
+    take_top n
+        - Remove and return the top `n` cards from the deck.
+        - `n` can be a number, an expression like `count-3`, or a variable.
+        - Example: take_top 4
+        - Example: take_top count-3
+        - Example: take_top x
+
+    count_cards
+        - Return the number of cards currently in the deck.
+        - Example: count_cards
+
+    shuffle
+        - Shuffle the deck randomly.
+        - Example: shuffle
+
+    insert_deck deck pos
+        - Insert a new deck into the current deck at position `pos`.
+        - The new deck should be a comma-separated list of cards.
+        - `pos` can be a number, an expression like `count/2`, or a variable.
+        - Example: insert_deck 2S,3H,4D 10
+        - Example: insert_deck 2S,3H,4D count/2
+        - Example: insert_deck 2S,3H,4D x
+
+    print_card_name index
+        - Print the name of the card at position `index` in the deck.
+        - `index` can be a number, an expression like `count-1`, or a variable.
+        - Example: print_card_name 2
+        - Example: print_card_name count-1
+        - Example: print_card_name x
+
+    print_card_number index
+        - Print the number of the card at position `index` in the deck.
+        - `index` can be a number, an expression like `count-1`, or a variable.
+        - Example: print_card_number 2
+        - Example: print_card_number count-1
+        - Example: print_card_number x
+
+    Variables and Assignment:
+    -------------------------
+    - Assign a value to a variable using `var = expression`.
+    - The expression can be a number, an expression like `count-2`, or another variable.
+    - Example: var x = count-2
+    - Example: var y = x
+
+    Conditionals:
+    -------------
+    - Perform actions conditionally using `if condition then command`.
+    - Supports simple comparisons: `==`, `!=`, `<`, `>`, `<=`, `>=`.
+    - Example: if count > 26 then shuffle
+
+    Referring to the Number of Cards in the Deck:
+    ---------------------------------------------
+    - You can use the keyword 'count' to refer to the number of cards in the deck.
+    - Example: move_top_to_bottom count-2 -> Move the top (count-2) cards to the bottom.
+
+    Command Chaining:
+    -----------------
+    - You can chain multiple commands together using '&&'.
+    - The commands will be executed sequentially.
+    - Example: move_top_to_bottom 3 && flip_deck && count_cards
+
+    help
+        - Display this help message.
+        - Example: really? quick reminder you already know how to use this command because you just used it xd
+
+    exit
+        - Exit the interpreter.
+        - Example: exit
+    """
+    print(help_text)
+
+def evaluate_expression(expr, deck):
+    try:
+        if "count" in expr:
+            count = deck.count_cards()
+            expr = expr.replace("count", str(count))
+        if expr in variables:
+            return variables[expr]
+        return eval(expr)
+    except Exception as e:
+        print(f"Error evaluating expression '{expr}': {e}")
+        return None
+
+def print_card_name(deck, index):
+    try:
+        card = deck.get_card(index)
+        print("Card name:", card.name)  # Assuming `get_card` returns a card object with `name` attribute
+    except Exception as e:
+        print(f"Error printing card name at index {index}: {e}")
+
+def print_card_number(deck, index):
+    try:
+        card = deck.get_card(index)
+        print("Card number:", card.number)  # Assuming `get_card` returns a card object with `number` attribute
+    except Exception as e:
+        print(f"Error printing card number at index {index}: {e}")
+
+def interpret_command(deck, command):
+    global variables
+    command = command.strip()
+    if not command:
+        return
+
+    tokens = command.split()
+
+    try:
+        if tokens[0] == "var":
+            var_name = tokens[1]
+            if tokens[2] == '=':
+                value = evaluate_expression(" ".join(tokens[3:]), deck)
+                if value is not None:
+                    variables[var_name] = value
+                    print(f"Variable {var_name} set to {value}")
+        elif tokens[0] == "move_top_to_bottom":
+            n = evaluate_expression(tokens[1], deck)
+            if n is not None:
+                deck.move_top_to_bottom(n)
+        elif tokens[0] == "flip_deck":
+            deck.flip_deck()
+        elif tokens[0] == "cut_deck":
+            n = evaluate_expression(tokens[1], deck)
+            if n is not None:
+                new_deck = deck.cut_deck(n)
+                print("New deck created:", ", ".join(new_deck))
+        elif tokens[0] == "peek_top":
+            n = evaluate_expression(tokens[1], deck)
+            if n is not None:
+                print("Top cards:", ", ".join(deck.peek_top(n)))
+        elif tokens[0] == "take_top":
+            n = evaluate_expression(tokens[1], deck)
+            if n is not None:
+                print("Taken cards:", ", ".join(deck.take_top(n)))
+        elif tokens[0] == "count_cards":
+            print("Number of cards in deck:", deck.count_cards())
+        elif tokens[0] == "shuffle":
+            deck.shuffle()
+        elif tokens[0] == "insert_deck":
+            new_deck_str = tokens[1].split(",")
+            pos = evaluate_expression(tokens[2], deck)
+            if pos is not None:
+                deck.insert_deck(new_deck_str, pos)
+        elif tokens[0] == "print_card_name":
+            index = evaluate_expression(tokens[1], deck)
+            if index is not None:
+                print_card_name(deck, index)
+        elif tokens[0] == "print_card_number":
+            index = evaluate_expression(tokens[1], deck)
+            if index is not None:
+                print_card_number(deck, index)
+        elif tokens[0] == "if":
+            condition = " ".join(tokens[1:tokens.index('then')])
+            if evaluate_expression(condition, deck):
+                command_to_run = " ".join(tokens[tokens.index('then') + 1:])
+                interpret_command(deck, command_to_run)
+        elif tokens[0] == "help":
+            display_help()
+        else:
+            print("Unknown command! Type 'help' to see a list of available commands.")
+    except Exception as e:
+        print(f"Error interpreting command '{command}': {e}")
+
+def run_interpreter(deck):
+    print("Initial Deck:", deck)
+
+    while True:
+        try:
+            command = input("Enter command: ")
+            if command == "exit":
+                break
+
+            commands = command.split('&&')
+            for cmd in commands:
+                interpret_command(deck, cmd.strip())
+            
+            print("Current Deck:", deck)
+        except Exception as e:
+            print(f"Unexpected error: {e}")
+
+if __name__ == "__main__":
+    deck = Deck()
+    run_interpreter(deck)
