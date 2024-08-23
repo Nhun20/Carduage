@@ -3,6 +3,7 @@ from carduage import Deck
 variables = {}
 MAX_SUM = 55  
 removed_cards = []  
+card_values = {}  
 
 def display_help():
     help_text = """
@@ -75,6 +76,11 @@ def display_help():
         - Example: print_card_number count-1
         - Example: print_card_number x
 
+    set_card_value card value
+        - Assign a custom value to a specific card.
+        - If the value exceeds 55, the interpreter will exit with an error.
+        - Example: set_card_value J2 22
+
     Variables and Assignment:
     -------------------------
     - Assign a value to a variable using `var = expression`.
@@ -87,7 +93,8 @@ def display_help():
     -------------
     - Perform actions conditionally using `if condition then command`.
     - Supports simple comparisons: `==`, `!=`, `<`, `>`, `<=`, `>=`.
-    - Example: if count > 26 then shuffle
+    - Supports addition, but if the result exceeds 55 at any point, the interpreter will exit.
+    - Example: if count + 10 > 26 then shuffle
 
     Referring to the Number of Cards in the Deck:
     ---------------------------------------------
@@ -110,14 +117,27 @@ def display_help():
     """
     print(help_text)
 
-def evaluate_expression(expr, deck):
+def evaluate_expression(expr, deck, check_sum=False):
     try:
         if "count" in expr:
             count = deck.count_cards()
             expr = expr.replace("count", str(count))
         if expr in variables:
             return variables[expr]
-        return eval(expr)
+
+        # Check for addition and ensure sum does not exceed MAX_SUM
+        result = eval(expr)
+        if check_sum and isinstance(result, int):
+            # Check each term in the addition to ensure it does not exceed MAX_SUM
+            terms = [int(term) for term in expr.split('+')]
+            for term in terms:
+                if term > MAX_SUM:
+                    print(f"Error: A term {term} exceeds the maximum allowed value of {MAX_SUM}. Exiting.")
+                    exit(1)
+            if result > MAX_SUM:
+                print(f"Error: The sum {result} exceeds the maximum allowed value of {MAX_SUM}. Exiting.")
+                exit(1)
+        return result
     except Exception as e:
         print(f"Error evaluating expression '{expr}': {e}")
         return None
@@ -128,17 +148,24 @@ def check_variable_sum():
         print(f"Error: The sum of all variable values cannot exceed {MAX_SUM}. Current sum is {total_sum}. Exiting.")
         exit(1)
 
+def set_card_value(card_name, value):
+    if value > 55:
+        print(f"Error: The assigned value for {card_name} cannot exceed 55. Exiting.")
+        exit(1)
+    card_values[card_name] = value
+    print(f"Set value of {card_name} to {value}")
+
 def print_card_name(deck, index):
     try:
         card = deck.get_card(index)
-        print("Card name:", card.name)  
+        print("Card name:", card.name)
     except Exception as e:
         print(f"Error printing card name at index {index}: {e}")
 
 def print_card_number(deck, index):
     try:
         card = deck.get_card(index)
-        print("Card number:", card.number)  
+        print("Card number:", card.number)
     except Exception as e:
         print(f"Error printing card number at index {index}: {e}")
 
@@ -157,7 +184,7 @@ def interpret_command(deck, command):
                 value = evaluate_expression(" ".join(tokens[3:]), deck)
                 if value is not None:
                     variables[var_name] = value
-                    check_variable_sum()  
+                    check_variable_sum()
                     print(f"Variable {var_name} set to {value}")
         elif tokens[0] == "move_top_to_bottom":
             n = evaluate_expression(tokens[1], deck)
@@ -177,12 +204,12 @@ def interpret_command(deck, command):
         elif tokens[0] == "take_top":
             n = evaluate_expression(tokens[1], deck)
             if n is not None:
-                removed_cards = deck.take_top(n)[::-1]  
+                removed_cards = deck.take_top(n)[::-1]
                 print("Taken cards:", ", ".join(removed_cards))
         elif tokens[0] == "return_top":
             if removed_cards:
-                deck.insert_deck(removed_cards, 0)  
-                removed_cards = []  
+                deck.insert_deck(removed_cards, 0)
+                removed_cards = []
                 print("Returned cards to top of the deck.")
             else:
                 print("No cards to return.")
@@ -195,6 +222,11 @@ def interpret_command(deck, command):
             pos = evaluate_expression(tokens[2], deck)
             if pos is not None:
                 deck.insert_deck(new_deck_str, pos)
+        elif tokens[0] == "set_card_value":
+            card_name = tokens[1]
+            value = evaluate_expression(tokens[2], deck)
+            if value is not None:
+                set_card_value(card_name, value)
         elif tokens[0] == "print_card_name":
             index = evaluate_expression(tokens[1], deck)
             if index is not None:
@@ -205,7 +237,7 @@ def interpret_command(deck, command):
                 print_card_number(deck, index)
         elif tokens[0] == "if":
             condition = " ".join(tokens[1:tokens.index('then')])
-            if evaluate_expression(condition, deck):
+            if evaluate_expression(condition, deck, check_sum=True):
                 command_to_run = " ".join(tokens[tokens.index('then') + 1:])
                 interpret_command(deck, command_to_run)
         elif tokens[0] == "help":
