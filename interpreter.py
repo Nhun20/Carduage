@@ -125,10 +125,8 @@ def evaluate_expression(expr, deck, check_sum=False):
         if expr in variables:
             return variables[expr]
 
-        # Check for addition and ensure sum does not exceed MAX_SUM
         result = eval(expr)
         if check_sum and isinstance(result, int):
-            # Check each term in the addition to ensure it does not exceed MAX_SUM
             terms = [int(term) for term in expr.split('+')]
             for term in terms:
                 if term > MAX_SUM:
