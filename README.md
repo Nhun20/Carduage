@@ -1,8 +1,3 @@
-# Carduage
-Programming language with the logic of a deck of cards... Written in python.
-To run the code, write: python interpreter.py  (in the terminal)
-
-   
     Available Commands:
     -------------------
     move_top_to_bottom n
@@ -31,11 +26,16 @@ To run the code, write: python interpreter.py  (in the terminal)
         - Example: peek_top x
 
     take_top n
-        - Remove and return the top `n` cards from the deck.
+        - Remove and store the top `n` cards from the deck.
+        - The top card of the original deck will be at the bottom of the removed cards.
         - `n` can be a number, an expression like `count-3`, or a variable.
         - Example: take_top 4
         - Example: take_top count-3
         - Example: take_top x
+
+    return_top
+        - Place the last removed cards back on top of the deck in reverse order.
+        - Example: return_top
 
     count_cards
         - Return the number of cards currently in the deck.
@@ -67,10 +67,16 @@ To run the code, write: python interpreter.py  (in the terminal)
         - Example: print_card_number count-1
         - Example: print_card_number x
 
+    set_card_value card value
+        - Assign a custom value to a specific card.
+        - If the value exceeds 55, the interpreter will exit with an error.
+        - Example: set_card_value J2 22
+
     Variables and Assignment:
     -------------------------
     - Assign a value to a variable using `var = expression`.
     - The expression can be a number, an expression like `count-2`, or another variable.
+    - The sum of all variable values cannot exceed 55.
     - Example: var x = count-2
     - Example: var y = x
 
@@ -78,7 +84,8 @@ To run the code, write: python interpreter.py  (in the terminal)
     -------------
     - Perform actions conditionally using `if condition then command`.
     - Supports simple comparisons: `==`, `!=`, `<`, `>`, `<=`, `>=`.
-    - Example: if count > 26 then shuffle
+    - Supports addition, but if the result exceeds 55 at any point, the interpreter will exit.
+    - Example: if count + 10 > 26 then shuffle
 
     Referring to the Number of Cards in the Deck:
     ---------------------------------------------
@@ -93,7 +100,7 @@ To run the code, write: python interpreter.py  (in the terminal)
 
     help
         - Display this help message.
-        - Example: help
+        - Example: really? quick reminder you already know how to use this command because you just used it xd
 
     exit
         - Exit the interpreter.
