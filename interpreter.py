@@ -1,6 +1,8 @@
 from carduage import Deck
 
 variables = {}
+MAX_SUM = 55  
+removed_cards = []  
 
 def display_help():
     help_text = """
@@ -32,11 +34,16 @@ def display_help():
         - Example: peek_top x
 
     take_top n
-        - Remove and return the top `n` cards from the deck.
+        - Remove and store the top `n` cards from the deck.
+        - The top card of the original deck will be at the bottom of the removed cards.
         - `n` can be a number, an expression like `count-3`, or a variable.
         - Example: take_top 4
         - Example: take_top count-3
         - Example: take_top x
+
+    return_top
+        - Place the last removed cards back on top of the deck in reverse order.
+        - Example: return_top
 
     count_cards
         - Return the number of cards currently in the deck.
@@ -72,6 +79,7 @@ def display_help():
     -------------------------
     - Assign a value to a variable using `var = expression`.
     - The expression can be a number, an expression like `count-2`, or another variable.
+    - The sum of all variable values cannot exceed 55.
     - Example: var x = count-2
     - Example: var y = x
 
@@ -114,22 +122,28 @@ def evaluate_expression(expr, deck):
         print(f"Error evaluating expression '{expr}': {e}")
         return None
 
+def check_variable_sum():
+    total_sum = sum(variables.values())
+    if total_sum > MAX_SUM:
+        print(f"Error: The sum of all variable values cannot exceed {MAX_SUM}. Current sum is {total_sum}. Exiting.")
+        exit(1)
+
 def print_card_name(deck, index):
     try:
         card = deck.get_card(index)
-        print("Card name:", card.name)  # Assuming `get_card` returns a card object with `name` attribute
+        print("Card name:", card.name)  
     except Exception as e:
         print(f"Error printing card name at index {index}: {e}")
 
 def print_card_number(deck, index):
     try:
         card = deck.get_card(index)
-        print("Card number:", card.number)  # Assuming `get_card` returns a card object with `number` attribute
+        print("Card number:", card.number)  
     except Exception as e:
         print(f"Error printing card number at index {index}: {e}")
 
 def interpret_command(deck, command):
-    global variables
+    global variables, removed_cards
     command = command.strip()
     if not command:
         return
@@ -143,6 +157,7 @@ def interpret_command(deck, command):
                 value = evaluate_expression(" ".join(tokens[3:]), deck)
                 if value is not None:
                     variables[var_name] = value
+                    check_variable_sum()  
                     print(f"Variable {var_name} set to {value}")
         elif tokens[0] == "move_top_to_bottom":
             n = evaluate_expression(tokens[1], deck)
@@ -162,7 +177,15 @@ def interpret_command(deck, command):
         elif tokens[0] == "take_top":
             n = evaluate_expression(tokens[1], deck)
             if n is not None:
-                print("Taken cards:", ", ".join(deck.take_top(n)))
+                removed_cards = deck.take_top(n)[::-1]  
+                print("Taken cards:", ", ".join(removed_cards))
+        elif tokens[0] == "return_top":
+            if removed_cards:
+                deck.insert_deck(removed_cards, 0)  
+                removed_cards = []  
+                print("Returned cards to top of the deck.")
+            else:
+                print("No cards to return.")
         elif tokens[0] == "count_cards":
             print("Number of cards in deck:", deck.count_cards())
         elif tokens[0] == "shuffle":
@@ -190,24 +213,21 @@ def interpret_command(deck, command):
         else:
             print("Unknown command! Type 'help' to see a list of available commands.")
     except Exception as e:
-        print(f"Error interpreting command '{command}': {e}")
+        print(f"An error occurred while executing command '{command}': {e}")
 
 def run_interpreter(deck):
     print("Initial Deck:", deck)
 
     while True:
-        try:
-            command = input("Enter command: ")
-            if command == "exit":
-                break
+        command = input("Enter command: ")
+        if command == "exit":
+            break
 
-            commands = command.split('&&')
-            for cmd in commands:
-                interpret_command(deck, cmd.strip())
-            
-            print("Current Deck:", deck)
-        except Exception as e:
-            print(f"Unexpected error: {e}")
+        commands = command.split('&&')
+        for cmd in commands:
+            interpret_command(deck, cmd.strip())
+        
+        print("Current Deck:", deck)
 
 if __name__ == "__main__":
     deck = Deck()
