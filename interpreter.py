@@ -1,4 +1,5 @@
 from carduage import Deck
+import random
 
 variables = {}
 MAX_SUM = 55  
@@ -116,6 +117,17 @@ def display_help():
         - Example: exit
     """
     print(help_text)
+
+def random_joke_or_trivia():
+    messages = [
+        "Why don't cards play hide and seek? Because good luck finding them!",
+        "Did you know? The number of possible shuffles for a deck of 52 cards is around 8×10^67! That's more than the number of atoms in the universe!",
+        "Why did the card go to therapy? It had too many suits!",
+        "Fun fact: In some cultures, the Ace of Spades is considered the death card.",
+        "Why was the deck worried? Because it felt like it was going to shuffle off this mortal coil!"
+    ]
+    if random.random() < 0.04:  
+        print(random.choice(messages))
 
 def evaluate_expression(expr, deck, check_sum=False):
     try:
@@ -242,6 +254,9 @@ def interpret_command(deck, command):
             display_help()
         else:
             print("Unknown command! Type 'help' to see a list of available commands.")
+        
+        random_joke_or_trivia()  
+
     except Exception as e:
         print(f"An error occurred while executing command '{command}': {e}")
 
