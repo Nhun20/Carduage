@@ -103,7 +103,7 @@ Programming language with the logic of a deck of cards... Written in python. To 
 
     help
         - Display this help message.
-        - Example: help
+        - Example: really? quick reminder you already know how to use this command because you just used it xd
 
     exit
         - Exit the interpreter.
