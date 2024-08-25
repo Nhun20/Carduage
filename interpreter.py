@@ -134,23 +134,31 @@ def evaluate_expression(expr, deck, check_sum=False):
         if "count" in expr:
             count = deck.count_cards()
             expr = expr.replace("count", str(count))
-        if expr in variables:
-            return variables[expr]
+        
+        for var_name in variables:
+            expr = expr.replace(var_name, str(variables[var_name]))
+
+        if check_sum:
+            eval_expr = expr.replace("==", " ").replace("!=", " ").replace("<", " ").replace(">", " ").replace("<=", " ").replace(">=", " ")
+            terms = eval_expr.split('+')
+            sum_terms = 0
+            for term in terms:
+                term = term.strip()
+                if term.isdigit():
+                    num = int(term)
+                    sum_terms += num
+                    if sum_terms > MAX_SUM:
+                        print(f"Error: The sum {sum_terms} exceeds the maximum allowed value of {MAX_SUM}. Exiting.")
+                        exit(1)
 
         result = eval(expr)
-        if check_sum and isinstance(result, int):
-            terms = [int(term) for term in expr.split('+')]
-            for term in terms:
-                if term > MAX_SUM:
-                    print(f"Error: A term {term} exceeds the maximum allowed value of {MAX_SUM}. Exiting.")
-                    exit(1)
-            if result > MAX_SUM:
-                print(f"Error: The sum {result} exceeds the maximum allowed value of {MAX_SUM}. Exiting.")
-                exit(1)
         return result
+    
     except Exception as e:
         print(f"Error evaluating expression '{expr}': {e}")
         return None
+
+
 
 def check_variable_sum():
     total_sum = sum(variables.values())
