@@ -176,16 +176,21 @@ def set_card_value(card_name, value):
 def print_card_name(deck, index):
     try:
         card = deck.get_card(index)
-        print("Card name:", card.name)
+        print("Card name:", card)
     except Exception as e:
         print(f"Error printing card name at index {index}: {e}")
 
 def print_card_number(deck, index):
     try:
         card = deck.get_card(index)
-        print("Card number:", card.number)
+        # Assuming 'number' means the rank part of the card
+        number = ''.join([char for char in card if char.isdigit()])
+        if not number:  # This means it's a face card (J, Q, K, A)
+            number = card[0]  # First character should be J, Q, K, or A
+        print("Card number:", number)
     except Exception as e:
         print(f"Error printing card number at index {index}: {e}")
+
 
 def interpret_command(deck, command):
     global variables, removed_cards
